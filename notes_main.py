@@ -44,6 +44,41 @@ def save_note():
        with open('f.json', 'w') as file:
            json.dump(data, file, ensure_ascii = False)
 
+def add_tag():
+    if list_notes.selectedItems():
+        name_note_ = list_notes.selectedItems()[0].text()
+        tag_text_ = tag_text.text()
+        if tag_text_:
+            if not tag_text_ in data[name_note_]['теги']:
+                data[name_note_]['теги'].append(tag_text_)
+                list_tags.addItem(tag_text_)
+                tag_text.clear()
+                with open('f.json', 'w') as file:
+                    json.dump(data, file, ensure_ascii = False)
+        
+def del_tag():
+    if list_notes.selectedItems():
+        name_note_ = list_notes.selectedItems()[0].text()
+        if list_tags.selectedItems():
+            tag_text_ = list_tags.selectedItems()[0].text()
+            data[name_note_]['теги'].remove(tag_text_)
+            list_tags.clear()
+            list_tags.addItems(data[name_note_]['теги'])
+            with open('f.json', 'w') as file:
+                json.dump(data, file, ensure_ascii = False)
+
+def search_tag():
+    tag = tag_text.text()
+    if button_search_note.text() == 'Искать заметки по тегу' and tag:
+        notes_filtered = {}
+        for note in data:
+            if tag in data[note]['теги']:
+                notes_filtered[note] = data[note]
+        button_search_note.setText('Сбросить поиск')
+        list_notes.clear()
+        list_tags.clear()
+        list_notes.addItems(notes_filtered)
+    
 app = QApplication([])
 main_win = QWidget()
 main_win.resize(900, 600)
@@ -91,6 +126,9 @@ list_notes.itemClicked.connect(show_note)
 button_note_create.clicked.connect(add_note)
 button_note_del.clicked.connect(del_note)
 button_note_save.clicked.connect(save_note)
+button_add_to_note.clicked.connect(add_tag)
+button_separate_to_note.clicked.connect(del_tag)
+button_search_note.clicked.connect(search_tag)
 main_win.setLayout(layout_h)
 main_win.show()
 app.exec_()
