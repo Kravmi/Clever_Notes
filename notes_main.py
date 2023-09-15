@@ -38,10 +38,9 @@ def del_note():
 
 def save_note():
     if list_notes.selectedItems():
-       text_note = list_notes.selectedItems()[0].text()
-       data[text_note]['текст']
-       text_field.toPlainText()
-       with open('f.json', 'w') as file:
+        text_note = list_notes.selectedItems()[0].text()
+        data[text_note]['текст'] = text_field.toPlainText()
+        with open('f.json', 'w') as file:
            json.dump(data, file, ensure_ascii = False)
 
 def add_tag():
@@ -78,6 +77,12 @@ def search_tag():
         list_notes.clear()
         list_tags.clear()
         list_notes.addItems(notes_filtered)
+    elif button_search_note.text() == 'Сбросить поиск':
+        list_notes.clear()
+        list_tags.clear()
+        tag_text.clear()
+        list_notes.addItems(data)
+        button_search_note.setText('Искать заметки по тегу')
     
 app = QApplication([])
 main_win = QWidget()
