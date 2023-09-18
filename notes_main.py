@@ -3,45 +3,83 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QPushButton, QApplication, QWidget, QListWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QLineEdit, QLabel, QInputDialog, QMessageBox
 import json
 
-with open('f.json', 'r') as file:
-    data = json.load(file)
+notes = list()
+
+name = 0
+note = []
+while 1:
+    filename = str(name)+'.txt'
+    try:
+        with open(filename, 'r', encoding='utf-8') as file:
+            for line in file:
+                line = line.replace('\n', '')
+                note.append(line)
+        info = note[0].split('|')
+        note.append(info[0])
+        note.append(info[1])
+        tags = note[2].split()
+        note[2] = tags
+        notes.append(note)
+        note = []
+        name += 1
+    except IOError:
+        break
+
+for note in notes:
+    list_notes.addItem(note[0])
 
 def show_note():
     text_note = list_notes.selectedItems()[0].text()
-    text_field.setText(data[text_note]['текст'])
-    list_tags.clear()
-    list_tags.addItems(data[text_note]['теги'])
+    for note in notes:
+        if text_note == note[0]:
+            text_field.setText(note[1])
+            list_tags.clear()
+            list_tags.addItems(note[2])
 
 def add_note():
     name_note, result = QInputDialog.getText(main_win, "Добавить заметку", 'Название заметки')
     if name_note != '' and result == True:
-        data[name_note] = {'текст' : '', 'теги' : []}
-        list_notes.addItem(name_note)
-        list_tags.addItems(data[name_note]['теги'])
+        note = [name_note, '', []]
+        notes.append(note)
+        list_notes.addItem(note[0])
+        filename = str(len(notes)-1)+'.txt'
+        with open(filename, 'w', encoding='utf-8') as file:
+            file.write(note[0]+'\n')
 
 def del_note():
     if list_notes.selectedItems():
         text_note = list_notes.selectedItems()[0].text()
-        del data[text_note]
-        text_field.clear()
-        list_notes.clear()
-        list_tags.clear()
-        list_notes.addItems(data)
-        with open('f.json', 'w') as file:
-            json.dump(data, file, ensure_ascii = False)
-    else:
-        msg_box = QMessageBox()
-        msg_box.setWindowTitle("Ошибка")
-        msg_box.setText("Вы не выбрали заметку!")
-        msg_box.setIcon(QMessageBox.Information)
-        msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        # for 
+    #     del data[text_note]
+    #     text_field.clear()
+    #     list_notes.clear()
+    #     list_tags.clear()
+    #     list_notes.addItems(data)
+    #     with open('f.json', 'w') as file:
+    #         json.dump(data, file, ensure_ascii = False)
+    # else:
+    #     msg_box = QMessageBox()
+    #     msg_box.setWindowTitle("Ошибка")
+    #     msg_box.setText("Вы не выбрали заметку!")
+    #     msg_box.setIcon(QMessageBox.Information)
+    #     msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
 
 def save_note():
     if list_notes.selectedItems():
+        i = 0
         text_note = list_notes.selectedItems()[0].text()
-        data[text_note]['текст'] = text_field.toPlainText()
-        with open('f.json', 'w') as file:
-           json.dump(data, file, ensure_ascii = False)
+        for note in notes:
+            if note[0] == text_note:
+                note[1] = text_field.toPlainText()
+                filename = str(i)+'.txt'
+                with open(filename, 'w', encoding='utf-8') as file:
+                    file.write(note[0]+'|'+str(i)+'\n')
+                    file.write(note[1]+'\n')
+                    for tag in note[2]:
+                        file.write(tag+' ')
+            i += 1
+
+
 
 def add_tag():
     if list_notes.selectedItems():
@@ -96,7 +134,7 @@ list_notes_label = QLabel('Список заметок')
 layout_v_2.addWidget(list_notes_label)
 list_notes = QListWidget()
 layout_v_2.addWidget(list_notes)
-list_notes.addItems(data)
+# list_notes.addItems(data)
 layout_h = QHBoxLayout()
 layout_h_1 = QHBoxLayout()
 layout_h_2 = QHBoxLayout()
