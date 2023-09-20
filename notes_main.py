@@ -1,12 +1,13 @@
 #начни тут создавать приложение с умными заметками
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QPushButton, QApplication, QWidget, QListWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QLineEdit, QLabel, QInputDialog, QMessageBox
-import json
+import os
 
 notes = list()
 
 name = 0
 note = []
+
 while 1:
     filename = str(name)+'.txt'
     try:
@@ -15,40 +16,58 @@ while 1:
                 line = line.replace('\n', '')
                 note.append(line)
         info = note[0].split('|')
-        note.append(info[0])
-        note.append(info[1])
-        tags = note[2].split()
-        note[2] = tags
+        note[0] = info[0]
+        note.insert(1, info[1])
+        tags = note[3].split()
+        note[3] = tags
         notes.append(note)
+        print(note)
         note = []
         name += 1
     except IOError:
         break
 
-for note in notes:
-    list_notes.addItem(note[0])
-
 def show_note():
     text_note = list_notes.selectedItems()[0].text()
     for note in notes:
         if text_note == note[0]:
-            text_field.setText(note[1])
+            text_field.setText(note[2])
             list_tags.clear()
-            list_tags.addItems(note[2])
+            list_tags.addItems(note[3])
 
 def add_note():
     name_note, result = QInputDialog.getText(main_win, "Добавить заметку", 'Название заметки')
     if name_note != '' and result == True:
-        note = [name_note, '', []]
+        filename = str(len(notes))+'.txt'
+        note = [name_note, str(len(notes)), '', []]
         notes.append(note)
         list_notes.addItem(note[0])
-        filename = str(len(notes)-1)+'.txt'
+        print(note)
+        print(notes)
         with open(filename, 'w', encoding='utf-8') as file:
-            file.write(note[0]+'\n')
+            file.write(note[0] + '|' + note[1] + '\n')
 
 def del_note():
     if list_notes.selectedItems():
+        i = 0
         text_note = list_notes.selectedItems()[0].text()
+        for note in notes:
+            if note[0] == text_note:
+                os.remove(note[1] + '.txt')
+                notes.remove(note)
+                list_notes.clear()
+                for note in notes:
+                    list_notes.addItem(note[0])
+                print(notes)
+                # note[2] = text_field.toPlainText()
+                # filename = str(i)+'.txt'
+                # with open(filename, 'w', encoding='utf-8') as file:
+                #     file.write(note[0] + '|' + str(i) + '\n')
+                #     file.write(note[2]+'\n')
+                #     for tag in note[3]:
+                #         file.write(tag+' ')
+            i += 1
+
         # for 
     #     del data[text_note]
     #     text_field.clear()
@@ -70,12 +89,12 @@ def save_note():
         text_note = list_notes.selectedItems()[0].text()
         for note in notes:
             if note[0] == text_note:
-                note[1] = text_field.toPlainText()
+                note[2] = text_field.toPlainText()
                 filename = str(i)+'.txt'
                 with open(filename, 'w', encoding='utf-8') as file:
-                    file.write(note[0]+'|'+str(i)+'\n')
-                    file.write(note[1]+'\n')
-                    for tag in note[2]:
+                    file.write(note[0] + '|' + str(i) + '\n')
+                    file.write(note[2]+'\n')
+                    for tag in note[3]:
                         file.write(tag+' ')
             i += 1
 
@@ -172,6 +191,8 @@ button_note_save.clicked.connect(save_note)
 button_add_to_note.clicked.connect(add_tag)
 button_separate_to_note.clicked.connect(del_tag)
 button_search_note.clicked.connect(search_tag)
+for note in notes:
+    list_notes.addItem(note[0])
 main_win.setLayout(layout_h)
 main_win.show()
 app.exec_()
