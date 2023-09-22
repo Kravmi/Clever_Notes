@@ -1,31 +1,31 @@
-#начни тут создавать приложение с умными заметками
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QPushButton, QApplication, QWidget, QListWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QLineEdit, QLabel, QInputDialog, QMessageBox
+from PyQt5.QtWidgets import (QPushButton, QApplication, QWidget,
+                             QListWidget, QVBoxLayout, QHBoxLayout,
+                             QTextEdit, QLineEdit, QLabel, QInputDialog)
 import os
 
 notes = list()
 
-name = 0
 note = []
-
-while 1:
-    filename = str(name)+'.txt'
+files = os.listdir('Zametki')
+for file in files:
+    print(file)
+    with open('Zametki/' + file, 'r', encoding='utf-8') as file:
+        for line in file:
+            line = line.replace('\n', '')
+            note.append(line)
+    info = note[0].split('|')
+    note[0] = info[0]
+    note.insert(1, info[1])
     try:
-        with open(filename, 'r', encoding='utf-8') as file:
-            for line in file:
-                line = line.replace('\n', '')
-                note.append(line)
-        info = note[0].split('|')
-        note[0] = info[0]
-        note.insert(1, info[1])
         tags = note[3].split()
-        note[3] = tags
-        notes.append(note)
-        print(note)
-        note = []
-        name += 1
-    except IOError:
-        break
+    except IndexError:
+        tags = []
+    note[3] = tags
+    notes.append(note)
+    print(note)
+    note = []
+
 
 def show_note():
     text_note = list_notes.selectedItems()[0].text()
@@ -35,17 +35,20 @@ def show_note():
             list_tags.clear()
             list_tags.addItems(note[3])
 
+
 def add_note():
-    name_note, result = QInputDialog.getText(main_win, "Добавить заметку", 'Название заметки')
-    if name_note != '' and result == True:
-        filename = str(len(notes))+'.txt'
-        note = [name_note, str(len(notes)), '', []]
+    name_note, result = QInputDialog.getText(
+        main_win, "Добавить заметку", 'Название заметки')
+    if name_note != '' and result:
+        filename = str(len(notes) + 1) + '.txt'
+        note = [name_note, str(len(notes) + 1), '', []]
         notes.append(note)
         list_notes.addItem(note[0])
         print(note)
         print(notes)
-        with open(filename, 'w', encoding='utf-8') as file:
+        with open('Zametki/' + filename, 'w', encoding='utf-8') as file:
             file.write(note[0] + '|' + note[1] + '\n')
+
 
 def del_note():
     if list_notes.selectedItems():
@@ -53,35 +56,14 @@ def del_note():
         text_note = list_notes.selectedItems()[0].text()
         for note in notes:
             if note[0] == text_note:
-                os.remove(note[1] + '.txt')
+                os.remove('Zametki/' + note[1] + '.txt')
                 notes.remove(note)
                 list_notes.clear()
                 for note in notes:
                     list_notes.addItem(note[0])
                 print(notes)
-                # note[2] = text_field.toPlainText()
-                # filename = str(i)+'.txt'
-                # with open(filename, 'w', encoding='utf-8') as file:
-                #     file.write(note[0] + '|' + str(i) + '\n')
-                #     file.write(note[2]+'\n')
-                #     for tag in note[3]:
-                #         file.write(tag+' ')
             i += 1
 
-        # for 
-    #     del data[text_note]
-    #     text_field.clear()
-    #     list_notes.clear()
-    #     list_tags.clear()
-    #     list_notes.addItems(data)
-    #     with open('f.json', 'w') as file:
-    #         json.dump(data, file, ensure_ascii = False)
-    # else:
-    #     msg_box = QMessageBox()
-    #     msg_box.setWindowTitle("Ошибка")
-    #     msg_box.setText("Вы не выбрали заметку!")
-    #     msg_box.setIcon(QMessageBox.Information)
-    #     msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
 
 def save_note():
     if list_notes.selectedItems():
@@ -90,46 +72,63 @@ def save_note():
         for note in notes:
             if note[0] == text_note:
                 note[2] = text_field.toPlainText()
-                filename = str(i)+'.txt'
-                with open(filename, 'w', encoding='utf-8') as file:
+                filename = str(i) + '.txt'
+                with open('Zametki/' + filename, 'w', encoding='utf-8') as file:
                     file.write(note[0] + '|' + str(i) + '\n')
-                    file.write(note[2]+'\n')
+                    file.write(note[2] + '\n')
                     for tag in note[3]:
-                        file.write(tag+' ')
+                        file.write(tag + ' ')
             i += 1
-
 
 
 def add_tag():
     if list_notes.selectedItems():
+        i = 0
         name_note_ = list_notes.selectedItems()[0].text()
         tag_text_ = tag_text.text()
         if tag_text_:
-            if not tag_text_ in data[name_note_]['теги']:
-                data[name_note_]['теги'].append(tag_text_)
-                list_tags.addItem(tag_text_)
-                tag_text.clear()
-                with open('f.json', 'w') as file:
-                    json.dump(data, file, ensure_ascii = False)
-        
+            for note in notes:
+                if note[0] == name_note_:
+                    if tag_text_ not in note[3]:
+                        note[3].append(tag_text_)
+                        list_tags.addItem(tag_text_)
+                        tag_text.clear()
+                        filename = str(i) + '.txt'
+                        with open('Zametki/' + filename, 'w', encoding='utf-8') as file:
+                            file.write(note[0] + '|' + str(i) + '\n')
+                            file.write(note[2] + '\n')
+                            for tag in note[3]:
+                                file.write(tag + ' ')
+                i += 1
+
+
 def del_tag():
     if list_notes.selectedItems():
+        i = 0
         name_note_ = list_notes.selectedItems()[0].text()
         if list_tags.selectedItems():
-            tag_text_ = list_tags.selectedItems()[0].text()
-            data[name_note_]['теги'].remove(tag_text_)
-            list_tags.clear()
-            list_tags.addItems(data[name_note_]['теги'])
-            with open('f.json', 'w') as file:
-                json.dump(data, file, ensure_ascii = False)
+            for note in notes:
+                if note[0] == name_note_:
+                    tag_text_ = list_tags.selectedItems()[0].text()
+                    note[3].remove(tag_text_)
+                    list_tags.clear()
+                    list_tags.addItems(note[3])
+                    filename = str(i) + '.txt'
+                    with open('Zametki/' + filename, 'w', encoding='utf-8') as file:
+                        file.write(note[0] + '|' + str(i) + '\n')
+                        file.write(note[2] + '\n')
+                        for tag in note[3]:
+                            file.write(tag + ' ')
+                i += 1
+
 
 def search_tag():
     tag = tag_text.text()
     if button_search_note.text() == 'Искать заметки по тегу' and tag:
-        notes_filtered = {}
-        for note in data:
-            if tag in data[note]['теги']:
-                notes_filtered[note] = data[note]
+        notes_filtered = []
+        for note in notes:
+            if tag in note[3]:
+                notes_filtered.append(note[0])
         button_search_note.setText('Сбросить поиск')
         list_notes.clear()
         list_tags.clear()
@@ -138,9 +137,11 @@ def search_tag():
         list_notes.clear()
         list_tags.clear()
         tag_text.clear()
-        list_notes.addItems(data)
+        for note in notes:
+            list_notes.addItem(note[0])
         button_search_note.setText('Искать заметки по тегу')
-    
+
+
 app = QApplication([])
 main_win = QWidget()
 main_win.resize(900, 600)
