@@ -1,15 +1,15 @@
+import os
+import datetime
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QPushButton, QApplication, QWidget,
                              QListWidget, QVBoxLayout, QHBoxLayout,
                              QTextEdit, QLineEdit, QLabel, QInputDialog)
-import os
 
 notes = list()
 
 note = []
 files = os.listdir('Zametki')
 for file in files:
-    print(file)
     with open('Zametki/' + file, 'r', encoding='utf-8') as file:
         for line in file:
             line = line.replace('\n', '')
@@ -21,38 +21,52 @@ for file in files:
         tags = note[3].split()
     except IndexError:
         tags = []
-    note[3] = tags
+    try:
+        note[3] = tags
+    except IndexError:
+        note.append(tags)
     notes.append(note)
-    print(note)
     note = []
 
 
 def show_note():
+    'Функция нужна для показа заметок'
     text_note = list_notes.selectedItems()[0].text()
-    for note in notes:
-        if text_note == note[0]:
+    for element in notes:
+        if text_note == element[0]:
             text_field.setText(note[2])
             list_tags.clear()
             list_tags.addItems(note[3])
 
 
 def add_note():
+    'Создать заметку'
+    time_note = datetime.datetime.now()
+    print(time_note)
+    day = time_note.day
+    month = time_note.month
+    year = time_note.year
+    hour = time_note.hour
+    minute = time_note.minute
+    second = time_note.second
+    id_note = f'{day}{month}{year}{hour}{minute}{second}'
     name_note, result = QInputDialog.getText(
         main_win, "Добавить заметку", 'Название заметки')
     if name_note != '' and result:
-        filename = str(len(notes) + 1) + '.txt'
-        note = [name_note, str(len(notes) + 1), '', []]
+        filename = id_note + '.txt'
+        note = [name_note, id_note, 'defolt_text', ['defolt_tag']]
         notes.append(note)
         list_notes.addItem(note[0])
-        print(note)
-        print(notes)
         with open('Zametki/' + filename, 'w', encoding='utf-8') as file:
             file.write(note[0] + '|' + note[1] + '\n')
+            file.write(note[2] + '\n')
+            for tag in note[3]:
+                file.write(tag + ' ')
 
 
 def del_note():
+    'Удалить заметку'
     if list_notes.selectedItems():
-        i = 0
         text_note = list_notes.selectedItems()[0].text()
         for note in notes:
             if note[0] == text_note:
@@ -61,29 +75,26 @@ def del_note():
                 list_notes.clear()
                 for note in notes:
                     list_notes.addItem(note[0])
-                print(notes)
-            i += 1
 
 
 def save_note():
+    'Сохранить заметку'
     if list_notes.selectedItems():
-        i = 0
         text_note = list_notes.selectedItems()[0].text()
         for note in notes:
             if note[0] == text_note:
                 note[2] = text_field.toPlainText()
-                filename = str(i) + '.txt'
+                filename = note[1] + '.txt'
                 with open('Zametki/' + filename, 'w', encoding='utf-8') as file:
-                    file.write(note[0] + '|' + str(i) + '\n')
+                    file.write(note[0] + '|' + note[1] + '\n')
                     file.write(note[2] + '\n')
                     for tag in note[3]:
                         file.write(tag + ' ')
-            i += 1
 
 
 def add_tag():
+    'Добавить тег'
     if list_notes.selectedItems():
-        i = 0
         name_note_ = list_notes.selectedItems()[0].text()
         tag_text_ = tag_text.text()
         if tag_text_:
@@ -93,18 +104,17 @@ def add_tag():
                         note[3].append(tag_text_)
                         list_tags.addItem(tag_text_)
                         tag_text.clear()
-                        filename = str(i) + '.txt'
+                        filename = note[1] + '.txt'
                         with open('Zametki/' + filename, 'w', encoding='utf-8') as file:
-                            file.write(note[0] + '|' + str(i) + '\n')
+                            file.write(note[0] + '|' + note[1] + '\n')
                             file.write(note[2] + '\n')
                             for tag in note[3]:
                                 file.write(tag + ' ')
-                i += 1
 
 
 def del_tag():
+    'Удалить тег'
     if list_notes.selectedItems():
-        i = 0
         name_note_ = list_notes.selectedItems()[0].text()
         if list_tags.selectedItems():
             for note in notes:
@@ -113,16 +123,16 @@ def del_tag():
                     note[3].remove(tag_text_)
                     list_tags.clear()
                     list_tags.addItems(note[3])
-                    filename = str(i) + '.txt'
+                    filename = note[1] + '.txt'
                     with open('Zametki/' + filename, 'w', encoding='utf-8') as file:
-                        file.write(note[0] + '|' + str(i) + '\n')
+                        file.write(note[0] + '|' + note[1] + '\n')
                         file.write(note[2] + '\n')
                         for tag in note[3]:
                             file.write(tag + ' ')
-                i += 1
 
 
 def search_tag():
+    'Искать заметки по тегу'
     tag = tag_text.text()
     if button_search_note.text() == 'Искать заметки по тегу' and tag:
         notes_filtered = []
@@ -154,7 +164,6 @@ list_notes_label = QLabel('Список заметок')
 layout_v_2.addWidget(list_notes_label)
 list_notes = QListWidget()
 layout_v_2.addWidget(list_notes)
-# list_notes.addItems(data)
 layout_h = QHBoxLayout()
 layout_h_1 = QHBoxLayout()
 layout_h_2 = QHBoxLayout()
